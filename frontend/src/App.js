@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import "./App.css";
 import Papa from "papaparse";
 import { Line } from "react-chartjs-2";
@@ -13,6 +13,8 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 function App() {
+  const [tab, setTab] = useState("live");
+
   const [form, setForm] = useState({
     duration: 0,
     protocol_type: "tcp",
@@ -25,35 +27,10 @@ function App() {
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [batchResults, setBatchResults] = useState(null);
+
   const [liveData, setLiveData] = useState([]);
   const wsRef = useRef(null);
   const [liveStatus, setLiveStatus] = useState("disconnected");
-
-  const setExampleNormal = () => {
-    setForm({
-      duration: 0,
-      protocol_type: "tcp",
-      service: "http",
-      flag: "SF",
-      src_bytes: 181,
-      dst_bytes: 5450,
-    });
-  };
-
-  const setExampleAttack = () => {
-    setForm({
-      duration: 0,
-      protocol_type: "icmp",
-      service: "ecr_i",
-      flag: "REJ",
-      src_bytes: 0,
-      dst_bytes: 0,
-    });
-  };
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const buildFullFeatures = (d) => ({
     duration: Number(d.duration),
@@ -99,6 +76,7 @@ function App() {
     dst_host_srv_rerror_rate: 0.0,
   });
 
+  // ---------------- MANUAL PREDICTION ----------------
   const predict = async () => {
     const packet = buildFullFeatures(form);
 
@@ -110,9 +88,10 @@ function App() {
 
     const data = await response.json();
     setResult(data);
-    setHistory([...history, data.is_intrusion ? 1 : 0]);
+    setHistory((prev) => [...prev, data.is_intrusion ? 1 : 0]);
   };
 
+  // ---------------- BATCH CSV ----------------
   const handleCSV = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -135,8 +114,7 @@ function App() {
     });
   };
 
-  // ------------------ LIVE MODE WEBSOCKET ------------------
-
+  // ---------------- LIVE STREAM ----------------
   const startLiveStream = () => {
     wsRef.current = new WebSocket("ws://127.0.0.1:8000/live");
     wsRef.current.onopen = () => setLiveStatus("connected");
@@ -158,7 +136,7 @@ function App() {
     labels: history.map((_, i) => i + 1),
     datasets: [
       {
-        label: "Intrusion History (1 = Attack, 0 = Normal)",
+        label: "Intrusion Timeline (1 = Attack, 0 = Normal)",
         data: history,
         borderWidth: 2,
       },
@@ -166,93 +144,100 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <h1>Intrusion Detection Dashboard</h1>
+    <div className="app-wrapper">
 
-      {/* LIVE STREAM SECTION */}
-      <div className="live-controls">
-        <button onClick={startLiveStream} disabled={liveStatus === "connected"}>
-          Start Live Mode
-        </button>
-        <button onClick={stopLiveStream} disabled={liveStatus === "disconnected"}>
-          Stop Live Mode
-        </button>
-        <span className={`status ${liveStatus}`}>● {liveStatus}</span>
+      {/* ---------------- TABS ---------------- */}
+      <div className="tabs">
+        <button className={tab === "live" ? "active" : ""} onClick={() => setTab("live")}>🔴 Live Monitor</button>
+        <button className={tab === "manual" ? "active" : ""} onClick={() => setTab("manual")}>🟢 Manual Predict</button>
+        <button className={tab === "batch" ? "active" : ""} onClick={() => setTab("batch")}>📁 Batch Upload</button>
       </div>
 
-      {liveData.length > 0 && (
-        <table className="live-table">
-          <thead>
-            <tr>
-              <th>#</th><th>Status</th><th>Confidence</th>
-            </tr>
-          </thead>
-          <tbody>
-            {liveData.map((p, i) => (
-              <tr key={i} className={p.is_intrusion ? "attack-row" : "normal-row"}>
-                <td>{i + 1}</td>
-                <td>{p.prediction}</td>
-                <td>{p.confidence.toFixed(2)}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {/* ---------------- TAB CONTENT ---------------- */}
 
-      <div className="example-btns">
-        <button onClick={setExampleNormal}>Normal Example</button>
-        <button onClick={setExampleAttack}>Attack Example</button>
-      </div>
+      {/* LIVE TAB */}
+      {tab === "live" && (
+        <div className="tab-content">
+          <h1>Real-Time Network Intrusion Stream</h1>
 
-      <div className="input-group">
-        <input name="duration" placeholder="Duration" onChange={handleChange} value={form.duration} />
-        <select name="protocol_type" onChange={handleChange} value={form.protocol_type}>
-          <option>tcp</option><option>udp</option><option>icmp</option>
-        </select>
-        <input name="service" placeholder="Service" onChange={handleChange} value={form.service} />
-        <input name="flag" placeholder="Flag" onChange={handleChange} value={form.flag} />
-        <input name="src_bytes" placeholder="Source Bytes" onChange={handleChange} value={form.src_bytes} />
-        <input name="dst_bytes" placeholder="Destination Bytes" onChange={handleChange} value={form.dst_bytes} />
-      </div>
+          <div className="live-controls">
+            <button onClick={startLiveStream} disabled={liveStatus === "connected"}>Start Live</button>
+            <button onClick={stopLiveStream} disabled={liveStatus === "disconnected"}>Stop</button>
+            <span className={`status ${liveStatus}`}>● {liveStatus}</span>
+          </div>
 
-      <button className="predict-btn" onClick={predict}>Predict</button>
+          {liveData.length > 0 && (
+            <table className="live-table">
+              <thead><tr><th>#</th><th>Status</th><th>Confidence</th></tr></thead>
+              <tbody>
+                {liveData.map((p, i) => (
+                  <tr key={i} className={p.is_intrusion ? "attack-row" : "normal-row"}>
+                    <td>{i + 1}</td><td>{p.prediction}</td><td>{p.confidence.toFixed(2)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
 
-      {result && (
-        <div className="result-box">
-          <h3>{result.prediction}</h3>
-          <p>Confidence: {result.confidence.toFixed(2)}%</p>
+          {history.length > 0 && <Line data={chartData} />}
         </div>
       )}
 
-      {history.length > 0 && <Line data={chartData} />}
-
-      <h2>Batch CSV Prediction</h2>
-      <input type="file" accept=".csv" className="upload-input" onChange={handleCSV} />
-
-      {batchResults && (
-        <>
-          <div className="result-box">
-            <p>Total: {batchResults.total_count}</p>
-            <p>Attacks: {batchResults.intrusion_count}</p>
-            <p>Normal: {batchResults.normal_count}</p>
+      {/* MANUAL TAB */}
+      {tab === "manual" && (
+        <div className="tab-content">
+          <h1>Manual Single Packet Analysis</h1>
+          <div className="input-group">
+            <input name="duration" placeholder="Duration" onChange={(e) => setForm({ ...form, duration: e.target.value })} value={form.duration} />
+            <select name="protocol_type" onChange={(e) => setForm({ ...form, protocol_type: e.target.value })} value={form.protocol_type}>
+              <option>tcp</option><option>udp</option><option>icmp</option>
+            </select>
+            <input name="service" placeholder="Service" onChange={(e) => setForm({ ...form, service: e.target.value })} value={form.service} />
+            <input name="flag" placeholder="Flag" onChange={(e) => setForm({ ...form, flag: e.target.value })} value={form.flag} />
+            <input name="src_bytes" placeholder="Source Bytes" onChange={(e) => setForm({ ...form, src_bytes: e.target.value })} value={form.src_bytes} />
+            <input name="dst_bytes" placeholder="Destination Bytes" onChange={(e) => setForm({ ...form, dst_bytes: e.target.value })} value={form.dst_bytes} />
           </div>
 
-          <table className="batch-table">
-            <thead>
-              <tr><th>#</th><th>Prediction</th><th>Confidence</th></tr>
-            </thead>
-            <tbody>
-              {batchResults.results.map((r, i) => (
-                <tr key={i} className={r.is_intrusion ? "attack-row" : "normal-row"}>
-                  <td>{i + 1}</td>
-                  <td>{r.prediction}</td>
-                  <td>{r.confidence.toFixed(2)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
+          <button onClick={predict}>Analyze Packet</button>
+
+          {result && (
+            <div className="result-box">
+              <h3>{result.prediction}</h3>
+              <p>Confidence: {result.confidence.toFixed(2)}%</p>
+            </div>
+          )}
+        </div>
       )}
+
+      {/* BATCH TAB */}
+      {tab === "batch" && (
+        <div className="tab-content">
+          <h1>Batch CSV Threat Analysis</h1>
+          <input type="file" accept=".csv" className="upload-input" onChange={handleCSV} />
+
+          {batchResults && (
+            <>
+              <div className="result-box">
+                <p>Total: {batchResults.total_count}</p>
+                <p>Attacks: {batchResults.intrusion_count}</p>
+                <p>Normal: {batchResults.normal_count}</p>
+              </div>
+
+              <table className="batch-table">
+                <thead><tr><th>#</th><th>Prediction</th><th>Confidence</th></tr></thead>
+                <tbody>
+                  {batchResults.results.map((r, i) => (
+                    <tr key={i} className={r.is_intrusion ? "attack-row" : "normal-row"}>
+                      <td>{i + 1}</td><td>{r.prediction}</td><td>{r.confidence.toFixed(2)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }

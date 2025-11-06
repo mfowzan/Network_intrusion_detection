@@ -1,96 +1,545 @@
-body {
-  background: #0d1117;
-  color: #e6edf3;
+/* ==================== GLOBAL STYLES ==================== */
+* {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 30px auto;
-  background: #161b22;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0px 0px 20px rgba(0,0,0,0.45);
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a0e27;
+  color: #e0e7ff;
+  overflow-x: hidden;
 }
 
-h1, h2 {
+/* Animated Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+  animation: backgroundShift 20s ease infinite;
+  z-index: -1;
+}
+
+@keyframes backgroundShift {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* ==================== APP WRAPPER ==================== */
+.app-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+/* ==================== HEADER SECTION ==================== */
+.app-wrapper::before {
+  content: '🛡️ INTRUSION DETECTION SYSTEM';
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
   text-align: center;
-  color: #58a6ff;
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+  animation: glow 2s ease-in-out infinite alternate;
 }
 
+@keyframes glow {
+  from { text-shadow: 0 0 20px rgba(99, 102, 241, 0.5), 0 0 30px rgba(99, 102, 241, 0.3); }
+  to { text-shadow: 0 0 30px rgba(99, 102, 241, 0.8), 0 0 40px rgba(99, 102, 241, 0.5); }
+}
+
+/* ==================== TABS ==================== */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 0.5rem;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.tabs button {
+  flex: 1;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background: transparent;
+  color: #94a3b8;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tabs button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.tabs button:hover::before {
+  left: 100%;
+}
+
+.tabs button:hover {
+  color: #e0e7ff;
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.tabs button.active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  color: #fff;
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ==================== TAB CONTENT ==================== */
+.tab-content {
+  background: rgba(15, 23, 42, 0.6);
+  padding: 2.5rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-content h1 {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* ==================== LIVE CONTROLS ==================== */
+.live-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(30, 41, 59, 0.5);
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.live-controls button {
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.live-controls button:first-child {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.live-controls button:first-child:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.6);
+}
+
+.live-controls button:nth-child(2) {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.live-controls button:nth-child(2):hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(239, 68, 68, 0.6);
+}
+
+.live-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.status {
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.status.connected {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  animation: pulse 2s infinite;
+}
+
+.status.disconnected {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ==================== INPUT GROUP ==================== */
 .input-group {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-input, select {
-  background: #21262d;
-  border: 1px solid #30363d;
-  padding: 10px;
-  color: white;
-  border-radius: 6px;
-  font-size: 15px;
+.input-group input,
+.input-group select {
+  padding: 1rem 1.25rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 2px solid rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+  color: #e0e7ff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
 }
 
-button {
-  cursor: pointer;
-  border-radius: 6px;
-  border: none;
-  padding: 10px;
+.input-group input:focus,
+.input-group select:focus {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
-.predict-btn {
-  margin-top: 15px;
+.input-group input::placeholder {
+  color: #64748b;
+}
+
+/* ==================== BUTTONS ==================== */
+.tab-content > button,
+button[onClick*="predict"] {
+  display: block;
   width: 100%;
-  background: #238636;
+  max-width: 300px;
+  margin: 0 auto 2rem;
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   color: white;
-  font-size: 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+  position: relative;
+  overflow: hidden;
 }
-.predict-btn:hover { background: #2ea043; }
 
-.example-btns {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 15px;
+.tab-content > button::before,
+button[onClick*="predict"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
 }
-.example-btns button {
-  flex: 1;
-  background: #30363d;
-  color: white;
-}
-.example-btns button:hover { background: #3b434a; }
 
+.tab-content > button:hover::before,
+button[onClick*="predict"]:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.tab-content > button:hover,
+button[onClick*="predict"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(99, 102, 241, 0.6);
+}
+
+.tab-content > button:active,
+button[onClick*="predict"]:active {
+  transform: translateY(0);
+}
+
+/* ==================== RESULT BOX ==================== */
 .result-box {
-  margin-top: 20px;
-  padding: 15px;
-  background: #010409;
-  border: 1px solid #30363d;
-  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  margin: 2rem 0;
   text-align: center;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+  animation: slideUp 0.5s ease;
 }
 
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-box h3 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.result-box p {
+  font-size: 1.25rem;
+  color: #94a3b8;
+  margin: 0.5rem 0;
+}
+
+/* ==================== TABLES ==================== */
+.live-table,
 .batch-table {
   width: 100%;
-  margin-top: 20px;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 2rem 0;
+  background: rgba(30, 41, 59, 0.4);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
-.batch-table th, .batch-table td {
-  border: 1px solid #30363d;
-  padding: 8px;
+
+.live-table thead tr,
+.batch-table thead tr {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+}
+
+.live-table th,
+.batch-table th {
+  padding: 1.25rem;
+  text-align: left;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.875rem;
+  color: #e0e7ff;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.3);
+}
+
+.live-table td,
+.batch-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+  transition: background 0.2s ease;
+}
+
+.live-table tbody tr,
+.batch-table tbody tr {
+  transition: all 0.3s ease;
+}
+
+.live-table tbody tr:hover,
+.batch-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.1);
+  transform: scale(1.01);
+}
+
+.attack-row {
+  background: rgba(239, 68, 68, 0.15) !important;
+  border-left: 4px solid #ef4444;
+}
+
+.attack-row:hover {
+  background: rgba(239, 68, 68, 0.25) !important;
+}
+
+.normal-row {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border-left: 4px solid #10b981;
+}
+
+.normal-row:hover {
+  background: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* ==================== FILE UPLOAD ==================== */
+.upload-input {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 2rem;
+  padding: 1.5rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 2px dashed rgba(99, 102, 241, 0.4);
+  border-radius: 16px;
+  color: #e0e7ff;
+  cursor: pointer;
+  transition: all 0.3s ease;
   text-align: center;
 }
-.normal-row { background: rgba(0, 255, 0, 0.12); }
-.attack-row { background: rgba(255, 0, 0, 0.12); }
 
-.upload-input {
-  width: 100%;
-  margin-top: 10px;
-  padding: 8px;
-  background: #21262d;
-  border-radius: 6px;
-  border: 1px solid #30363d;
+.upload-input:hover {
+  border-color: rgba(99, 102, 241, 0.8);
+  background: rgba(30, 41, 59, 0.8);
+  transform: scale(1.02);
+}
+
+.upload-input::file-selector-button {
+  padding: 0.75rem 1.5rem;
+  margin-right: 1rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
   color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.upload-input::file-selector-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+/* ==================== CHART CONTAINER ==================== */
+.tab-content canvas {
+  margin-top: 2rem;
+  background: rgba(30, 41, 59, 0.4) !important;
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* ==================== SCROLLBAR ==================== */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .app-wrapper {
+    padding: 1rem;
+  }
+
+  .app-wrapper::before {
+    font-size: 1.5rem;
+    padding: 1rem;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
+
+  .tab-content {
+    padding: 1.5rem;
+  }
+
+  .tab-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .input-group {
+    grid-template-columns: 1fr;
+  }
+
+  .live-controls {
+    flex-direction: column;
+  }
+
+  .live-table,
+  .batch-table {
+    font-size: 0.875rem;
+  }
+
+  .live-table th,
+  .batch-table th,
+  .live-table td,
+  .batch-table td {
+    padding: 0.75rem;
+  }
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ==================== ACCESSIBILITY ==================== */
+*:focus-visible {
+  outline: 2px solid rgba(99, 102, 241, 0.8);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(99, 102, 241, 0.6);
+  outline-offset: 3px;
 }
