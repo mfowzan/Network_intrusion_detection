@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import Papa from "papaparse";
 import { Line } from "react-chartjs-2";
@@ -25,6 +25,9 @@ function App() {
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [batchResults, setBatchResults] = useState(null);
+  const [liveData, setLiveData] = useState([]);
+  const wsRef = useRef(null);
+  const [liveStatus, setLiveStatus] = useState("disconnected");
 
   const setExampleNormal = () => {
     setForm({
@@ -132,6 +135,25 @@ function App() {
     });
   };
 
+  // ------------------ LIVE MODE WEBSOCKET ------------------
+
+  const startLiveStream = () => {
+    wsRef.current = new WebSocket("ws://127.0.0.1:8000/live");
+    wsRef.current.onopen = () => setLiveStatus("connected");
+    wsRef.current.onclose = () => setLiveStatus("disconnected");
+
+    wsRef.current.onmessage = (event) => {
+      const packet = JSON.parse(event.data);
+      setLiveData((prev) => [packet, ...prev.slice(0, 49)]);
+      setHistory((prev) => [...prev, packet.is_intrusion ? 1 : 0]);
+    };
+  };
+
+  const stopLiveStream = () => {
+    if (wsRef.current) wsRef.current.close();
+    setLiveStatus("disconnected");
+  };
+
   const chartData = {
     labels: history.map((_, i) => i + 1),
     datasets: [
@@ -146,6 +168,36 @@ function App() {
   return (
     <div className="container">
       <h1>Intrusion Detection Dashboard</h1>
+
+      {/* LIVE STREAM SECTION */}
+      <div className="live-controls">
+        <button onClick={startLiveStream} disabled={liveStatus === "connected"}>
+          Start Live Mode
+        </button>
+        <button onClick={stopLiveStream} disabled={liveStatus === "disconnected"}>
+          Stop Live Mode
+        </button>
+        <span className={`status ${liveStatus}`}>● {liveStatus}</span>
+      </div>
+
+      {liveData.length > 0 && (
+        <table className="live-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Status</th><th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {liveData.map((p, i) => (
+              <tr key={i} className={p.is_intrusion ? "attack-row" : "normal-row"}>
+                <td>{i + 1}</td>
+                <td>{p.prediction}</td>
+                <td>{p.confidence.toFixed(2)}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
 
       <div className="example-btns">
         <button onClick={setExampleNormal}>Normal Example</button>

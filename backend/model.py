@@ -40,6 +40,38 @@ class IntrusionDetectionModel:
         except Exception as e:
             print(f"Error loading model: {str(e)}")
             raise
+
+    
+    def row_to_features(self, row):
+        """Convert a dataset row (raw NSL-KDD style) into model-ready numeric form."""
+
+        features = {}
+
+        for feature in self.feature_names:
+
+            value = row.get(feature, 0)
+
+        # Handle categorical fields with LabelEncoder
+            if feature in self.label_encoders:
+                le = self.label_encoders[feature]
+            # If unseen category appears, replace with most common known one
+                if str(value) in le.classes_:
+                    value = le.transform([str(value)])[0]
+                else:
+                    value = le.transform([le.classes_[0]])[0]  # fallback safe value
+            else:
+            # Convert numeric values safely
+                try:
+                    value = float(value)
+                except:
+                    value = 0.0
+
+            features[feature] = value
+
+        return features
+
+
+
     
     def preprocess_input(self, data: Dict) -> np.ndarray:
         """Preprocess input data for prediction"""
